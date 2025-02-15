@@ -15,7 +15,7 @@ class HtmlParser:
         self.pill_names: List[str] = []
         self.pill_descriptions: List[Dict[str, str]] = []
 
-    def fetch_html(self) -> bool:
+    def _fetch_html(self) -> bool:
         """
         Fetches HTML content from the provided URL
 
@@ -56,6 +56,7 @@ class HtmlParser:
             - pill_names: List of pill names
             - pill_descriptions: List of dictionaries with description key-value pairs
         """
+        self._fetch_html()  # Fetching HTML content
         if not self.soup:
             print("HTML content not loaded")
             return

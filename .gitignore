@@ -1,3 +1,7 @@
 # Created by venv; see https://docs.python.org/3/library/venv.html
 /t9hack
+/bin
+/lib
 .env
+/scrape/__pycache__/
+.vscode
