@@ -1,17 +1,11 @@
 # Created by venv; see https://docs.python.org/3/library/venv.html
 /t9hack
-<<<<<<< Updated upstream
 /bin
 /lib
 .env
 /scrape/__pycache__/
 .vscode
-=======
-<<<<<<< Updated upstream
 .env
-=======
 /venv
-__pycache__
-/aws_rekognition/__pycache__/
 >>>>>>> Stashed changes
 >>>>>>> Stashed changes

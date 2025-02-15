@@ -4,6 +4,7 @@ import logging
 from aws_rekognition.RekognitionTextExtractor import RekognitionTextExtractor
 from scrape.HTMLParse import HtmlParser
 import os
+import redis
 
 # TODO:
 # 1. Connect /extract_imprint to /get_pill_info aka pass the extracted text to get_pill_info endpoint
@@ -24,6 +25,7 @@ app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
 
 # Define allowed image file extensions for uploads
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
+redis_client = redis.Redis(host=os.getenv("REDIS_HOST", "localhost"), port=int(os.getenv("REDIS_PORT", 6379)), decode_responses=True)
 
 
 def allowed_file(filename: str) -> bool:
@@ -185,6 +187,40 @@ def get_pill_info():
         }
     )
 
+@app.route("/conversation", methods=["POST"])
+def conversation():
+    try:
+        # Get input data
+        data = request.get_json()
+        imprint_number = data.get("imprint_number")
+        generic_name = data.get("generic_name")
+        if not imprint_number or not generic_name:
+            return jsonify({"error": "Missing imprint_number or generic_name"}), 400
+
+        # Construct cache key and fetch from Redis
+        cache_key = f"{imprint_number}:{generic_name}"
+        logger.info(f"Fetching data from Redis with key: {cache_key}")
+        pill_data = redis_client.get(cache_key)
+        if not pill_data:
+            return jsonify({"error": "No data found for given imprint_number and generic_name"}), 404
+
+        # Parse the data (assuming it's stored as JSON string)
+        import json
+        pill_info = json.loads(pill_data)
+
+        # Pass the data to the OpenAI handler
+        explanation = explain_drug_from_json(pill_info)
+
+        return jsonify({
+            "imprint_number": imprint_number,
+            "generic_name": generic_name,
+            "explanation": explanation
+        })
+
+    except Exception as e:
+        logger.error(f"Unexpected error in /conversation: {str(e)}")
+        return jsonify({"error": "Internal Server Error", "details": str(e)}), 500
+
 
 if __name__ == "__main__":
     # Before running the application, verify that required environment variables are set
@@ -198,4 +234,4 @@ if __name__ == "__main__":
         exit(1)
 
     # Start the Flask application with debugging enabled (good for development)
-    app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)), debug=True)
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", 6969)), debug=True)
