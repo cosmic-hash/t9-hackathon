@@ -1,9 +1,8 @@
-````markdown
 # Pill Identification and Drug Safety Chatbot 💊
 
 **AI-powered medication analysis system using AWS Rekognition and FDA data**
 
-![System Architecture](pillpal_architecture.png)
+![System Architecture](./pillpal_architecture.png)
 
 ## 🚀 Key Features
 
@@ -22,18 +21,6 @@
 | `/extract_imprint` | POST   | Process pill images (JPEG/PNG)       |
 | `/get_pill_info`   | POST   | Fetch drug details from imprint code |
 | `/conversation`    | POST   | AI-powered drug safety Q&A           |
-
-### Data Flow
-
-```mermaid
-graph LR
-    User[Frontend] -->|Upload Image| Flask
-    Flask -->|Detect Text| AWS_Rekognition[AWS Rekognition]
-    Flask -->|Scrape Data| FDA_API[FDA APIs]
-    Flask -->|Cache Data| Redis[(Redis)]
-    Flask -->|Generate Responses| OpenAI[GPT API]
-```
-````
 
 ## 🛠️ Installation
 
@@ -173,7 +160,5 @@ services:
 ## 📝 License
 
 MIT License - See [LICENSE](LICENSE)
-
----
 
 **Note:** Requires React frontend implementation for full functionality. Replace placeholder FDA scraping logic with actual API integration.
