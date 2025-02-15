@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, send_from_directory
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
+from flask_cors import CORS
 import logging
 from aws_rekognition.RekognitionTextExtractor import RekognitionTextExtractor
 from scrape.HTMLParse import HtmlParser
@@ -9,6 +10,11 @@ import redis
 from datetime import datetime
 from myHelpers.openaiCall import explain_drug_from_json
 from myHelpers.fdaDataProcessing import search_and_fetch_pill_info
+
+
+# TODO:
+# 1. Connect /extract_imprint to /get_pill_info aka pass the extracted text to get_pill_info endpoint
+# 2. Implement endpoint for CHATBOT
 
 # Load environment variables from a .env file, if available
 load_dotenv()
@@ -22,6 +28,18 @@ app = Flask(__name__)
 
 # Set maximum allowed payload to 16MB (useful for limiting large file uploads)
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
+CORS(app)
+
+# Directory to save images
+UPLOAD_FOLDER = os.path.join(os.getcwd(), 'static', 'images')
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# Allowed extensions for image uploads
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+
 
 # Define allowed image file extensions for uploads
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
@@ -35,14 +53,9 @@ redis_client = redis.Redis(
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "static")
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-
-def allowed_file(filename: str) -> bool:
-    """
-    Check if the uploaded file has one of the allowed extensions.
-    Returns True if the file extension is allowed, otherwise False.
-    """
-    # Ensure the filename contains a period and that the extension is in the allowed set
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+def allowed_file(filename):
+    """Check if the file extension is allowed."""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 @app.route("/", methods=["GET"])
@@ -51,6 +64,10 @@ def serve_frontend() -> tuple:
     Serve React frontend homepage
     """
     return send_from_directory("../frontend/build", "index.html")
+
+# @app.route('/images/<filename>')
+# def serve_image(filename):
+#     return send_from_directory('static/images', filename)
 
 
 @app.route("/extract_imprint", methods=["POST"])
