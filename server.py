@@ -101,12 +101,18 @@ def extract_imprint():
         extractor = RekognitionTextExtractor(image_bytes)
         # Extract text from the image using the custom extractor
         results = extractor.extract_text()
+        parser = HtmlParser(results[0]["text"])
+        # Parse the content to retrieve pill information
+        parser.parse_content()
+        print("imprint=",results[0]["text"])
 
         # Return the first detected text as the imprint code in JSON format
         return (
             jsonify(
                 {
-                    "imprint_code": results[0]["text"],
+                    "imprint_number": results[0]["text"],
+                    "generic_name":parser.output_name,
+                    "summary":parser.output_summary,
                 }
             ),
             200,
@@ -173,9 +179,9 @@ def get_pill_info():
     return jsonify(
         {
             # Optionally include the imprint code if needed:
-            "imprint_code": parser.imprints,
-            "pill_name": parser.pill_names,
-            "pill_desc": parser.pill_descriptions,
+            "imprint_number": imprint_code,
+            "generic_name":parser.output_name,
+            "summary":parser.output_summary,
         }
     )
 

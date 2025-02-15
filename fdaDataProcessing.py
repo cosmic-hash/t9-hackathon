@@ -1,7 +1,7 @@
 import requests
 import redis
 import json
-
+from openaiCall import explain_drug_from_json
 # Initialize Redis connection
 redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
 
@@ -64,6 +64,28 @@ def search_and_fetch_pill_info(pill_name):
     else:
         print("Medication not found in LASA data.")
         return None
+
+def generic_fetch_summary(imprint_number, generic_name):
+    url = generate_openfda_url(generic_name)
+    print(f"Generated URL: {url}")
+
+    # Fetch data from FDA API
+    purpose, data = fetch_fda_data(url)
+    if data:
+        cache_key = f"{imprint_number}:{generic_name}"
+        print("cache_key: ", cache_key)
+        cached_data = redis_client.get(cache_key)
+        if cached_data:
+            print("Data fetched from cache:")
+            #cached_data = json.loads(cached_data)
+            explanation = explain_drug_from_json(json.loads(cached_data))
+            print(f"data: {explanation}")
+            return explanation
+        redis_client.setex(cache_key, 1800, json.dumps(data))
+        explanation = explain_drug_from_json(json.dumps(data))
+        return explanation
+    else:
+        print("Failed to retrieve drug information.")
 
 def main():
     imprint_number = "1238"

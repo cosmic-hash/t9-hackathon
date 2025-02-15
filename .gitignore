@@ -11,5 +11,7 @@
 .env
 =======
 /venv
+__pycache__
+/aws_rekognition/__pycache__/
 >>>>>>> Stashed changes
 >>>>>>> Stashed changes

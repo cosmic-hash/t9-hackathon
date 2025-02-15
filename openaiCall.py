@@ -15,7 +15,7 @@ class OpenAIHandler:
                 }
             ]
         )
-        return completion.choices[0].message
+        return completion.choices[0].message.content
 
 def explain_drug_from_json(fda_json):
     """
