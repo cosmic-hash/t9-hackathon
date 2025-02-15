@@ -3,7 +3,7 @@
 
 **AI-powered medication analysis system using AWS Rekognition and FDA data**
 
-![System Architecture](images/pillpal_architecture.png)
+![System Architecture](pillpal_architecture.png)
 
 ## 🚀 Key Features
 
