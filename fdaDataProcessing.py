@@ -47,23 +47,22 @@ def search_and_fetch_pill_info(pill_name):
             print("Data fetched from cache:")
             cached_data = json.loads(cached_data)
             print(f"Purpose: {cached_data['purpose']}")
-            return cached_data['purpose']
+            return cached_data['purpose'], related_pill
 
         # If not in cache, fetch from FDA API
         url = generate_openfda_url(related_pill)
         print(f"Generated URL: {url}")
         purpose, data = fetch_fda_data(url)
-
         if data:
             # Store the data in Redis with a TTL of 1800 seconds (30 minutes)
             redis_client.setex(related_pill, 1800, json.dumps({"purpose": purpose, "data": data}))
-            return purpose
+            return purpose, related_pill
         else:
             print("Failed to retrieve drug information.")
-            return None
+            return None, None
     else:
         print("Medication not found in LASA data.")
-        return None
+        return None, None
 
 def generic_fetch_summary(imprint_number, generic_name):
     url = generate_openfda_url(generic_name)
@@ -88,8 +87,8 @@ def generic_fetch_summary(imprint_number, generic_name):
         print("Failed to retrieve drug information.")
 
 def main():
-    imprint_number = "1238"
-    generic_name = "acetaZOLAMIDE"
+    imprint_number = "M71"
+    generic_name = "Allopurinol"
 
     # Generate URL
     url = generate_openfda_url(generic_name)
@@ -116,5 +115,5 @@ def main():
     else:
         print("No information found for the provided pill name.")
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()

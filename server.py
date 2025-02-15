@@ -5,6 +5,8 @@ from aws_rekognition.RekognitionTextExtractor import RekognitionTextExtractor
 from scrape.HTMLParse import HtmlParser
 import os
 import redis
+from openaiCall import explain_drug_from_json
+from fdaDataProcessing import search_and_fetch_pill_info
 
 # TODO:
 # 1. Connect /extract_imprint to /get_pill_info aka pass the extracted text to get_pill_info endpoint
@@ -194,26 +196,53 @@ def conversation():
         data = request.get_json()
         imprint_number = data.get("imprint_number")
         generic_name = data.get("generic_name")
+        user_query = data.get("user_query")
+        not_this_pill = data.get("not_this_pill", False)
         if not imprint_number or not generic_name:
             return jsonify({"error": "Missing imprint_number or generic_name"}), 400
 
         # Construct cache key and fetch from Redis
         cache_key = f"{imprint_number}:{generic_name}"
         logger.info(f"Fetching data from Redis with key: {cache_key}")
+        if not_this_pill:
+            new_purpose, related_pill = search_and_fetch_pill_info(generic_name)
+            if new_purpose:
+                return jsonify({
+                    "message": "Incorrect pill information detected. Fetched updated information.",
+                    "generic_name": related_pill,
+                    "new_purpose": new_purpose
+                })
+            else:
+                return jsonify({"error": "No updated information found for the provided pill name."}), 404
+        
         pill_data = redis_client.get(cache_key)
         if not pill_data:
             return jsonify({"error": "No data found for given imprint_number and generic_name"}), 404
+
+        if not_this_pill:
+            new_purpose = search_and_fetch_pill_info(generic_name)
+            if new_purpose:
+                return jsonify({
+                    "message": "Incorrect pill information detected. Fetched updated information.",
+                    "generic_name": generic_name,
+                    "new_purpose": new_purpose
+                })
+            else:
+                return jsonify({"error": "No updated information found for the provided pill name."}), 404
 
         # Parse the data (assuming it's stored as JSON string)
         import json
         pill_info = json.loads(pill_data)
 
-        # Pass the data to the OpenAI handler
-        explanation = explain_drug_from_json(pill_info)
+    
 
+        # Pass the data to the OpenAI handler with optional user query
+        explanation = explain_drug_from_json(pill_info, user_query)
+        
         return jsonify({
             "imprint_number": imprint_number,
             "generic_name": generic_name,
+            "user_query": user_query,
             "explanation": explanation
         })
 

@@ -4,25 +4,35 @@ class OpenAIHandler:
     def __init__(self):
         self.client = OpenAI()
 
-    def send_to_openai(self, purpose):
+    def send_to_openai(self, purpose, user_query=None):
+        # Construct the user prompt based on provided query or default prompt
+        if user_query:
+            user_prompt = (
+                f"Here is a medicine purpose: '{purpose}'. User's query: '{user_query}'. "
+                "Please answer the user's query strictly based on the provided purpose without relying on any external knowledge."
+            )
+        else:
+            user_prompt = (
+                f"Here is a medicine purpose: '{purpose}'. Can you explain what condition this medicine is meant to treat and how it helps? "
+                "Please use only the provided content and do not rely on any external knowledge."
+            )
+
         completion = self.client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
-                {
-                    "role": "user",
-                    "content": f"Here is a medicine purpose: '{purpose}'. Can you explain what condition this medicine is meant to treat and how it helps? Please use only the provided content and do not rely on any external knowledge."
-                }
+                {"role": "user", "content": user_prompt}
             ]
         )
         return completion.choices[0].message.content
 
-def explain_drug_from_json(fda_json):
+def explain_drug_from_json(fda_json, user_query=None):
     """
     Function to explain the problems solved by a drug based on FDA drug JSON response.
     
     Parameters:
         fda_json (dict): The JSON response containing drug details.
+        user_query (str): Optional user query for custom prompt.
     
     Returns:
         str: The explanation of the problems the drug solves.
@@ -43,8 +53,9 @@ def explain_drug_from_json(fda_json):
 
     # Instantiate the OpenAI handler and get the explanation
     handler = OpenAIHandler()
-    explanation = handler.send_to_openai(purpose)
+    explanation = handler.send_to_openai(purpose, user_query)
     return explanation
+
 
 # Example usage
 fda_json = {
@@ -155,5 +166,5 @@ fda_json = {
 }
 
 # Get and print the explanation
-explanation = explain_drug_from_json(fda_json)
-print(explanation)
+# explanation = explain_drug_from_json(fda_json)
+# print(explanation)
