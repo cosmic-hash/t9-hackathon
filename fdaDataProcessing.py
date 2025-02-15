@@ -81,7 +81,9 @@ def generic_fetch_summary(imprint_number, generic_name):
             print(f"data: {explanation}")
             return explanation
         redis_client.setex(cache_key, 1800, json.dumps(data))
-        explanation = explain_drug_from_json(json.dumps(data))
+        print("else")
+        cached_data = redis_client.get(cache_key)
+        explanation = explain_drug_from_json(json.loads(cached_data))
         return explanation
     else:
         print("Failed to retrieve drug information.")
