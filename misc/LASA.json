@@ -1,142 +1,48 @@
 {
-    "lasa_medications": [
-      {
-        "intended_medication": "acetaZOLAMIDE",
-        "confused_with": "acetoHEXAMIDE",
-        "intended_use": "Diuretic/Antiglaucoma",
-        "potential_risk": "Administering an antidiabetic agent instead of a diuretic, leading to ineffective treatment of glaucoma or edema."
-      },
-      {
-        "intended_medication": "buPROPion",
-        "confused_with": "busPIRone",
-        "intended_use": "Antidepressant",
-        "potential_risk": "Substitution with an anxiolytic, potentially causing unaddressed depression symptoms."
-      },
-      {
-        "intended_medication": "chlorproMAZINE",
-        "confused_with": "chlorproPAMIDE",
-        "intended_use": "Antipsychotic",
-        "potential_risk": "Confusing with a sulfonylurea antidiabetic drug, risking hypoglycemia or unmanaged psychosis."
-      },
-      {
-        "intended_medication": "clomiPHENE",
-        "confused_with": "clomiPRAMINE",
-        "intended_use": "Fertility Agent",
-        "potential_risk": "Mixing up with an antidepressant, leading to unintended ovulation induction or untreated depression."
-      },
-      {
-        "intended_medication": "cycloSERINE",
-        "confused_with": "cycloSPORINE",
-        "intended_use": "Antibiotic",
-        "potential_risk": "Administering an immunosuppressant instead, which could result in untreated infection or transplant rejection."
-      },
-      {
-        "intended_medication": "DAUNOrubicin",
-        "confused_with": "DOXOrubicin",
-        "intended_use": "Chemotherapeutic Agent",
-        "potential_risk": "Confusion between two agents with different dosing regimens, potentially leading to overdose or therapeutic failure."
-      },
-      {
-        "intended_medication": "DOBUTamine",
-        "confused_with": "DOPamine",
-        "intended_use": "Inotrope for Heart Failure",
-        "potential_risk": "Misadministration between two inotropes with different indications and dosing, affecting cardiovascular support."
-      },
-      {
-        "intended_medication": "hydrALAZINE",
-        "confused_with": "hydrOXYzine",
-        "intended_use": "Antihypertensive",
-        "potential_risk": "Substituting with an antihistamine, leading to unmanaged hypertension or unnecessary sedation."
-      },
-      {
-        "intended_medication": "morphine",
-        "confused_with": "HYDROmorphone",
-        "intended_use": "Opioid Analgesic",
-        "potential_risk": "Confusion between two opioids with different potencies, increasing the risk of overdose and respiratory depression."
-      },
-      {
-        "intended_medication": "pentoBARBital",
-        "confused_with": "phenobARBITAL",
-        "intended_use": "Barbiturate Anticonvulsant",
-        "potential_risk": "Mixing up two barbiturates with different uses and potencies, potentially causing overdose or therapeutic failure."
-      },
-      {
-        "intended_medication": "traMADol",
-        "confused_with": "traZODone",
-        "intended_use": "Analgesic",
-        "potential_risk": "Confusing with an antidepressant, leading to unmanaged pain or depression."
-      },
-      {
-        "intended_medication": "vinBLAStine",
-        "confused_with": "vinCRIStine",
-        "intended_use": "Chemotherapeutic Agent",
-        "potential_risk": "Confusion between two agents with different indications and dosing, potentially leading to therapeutic failure or toxicity."
-      },
-      {
-        "intended_medication": "ALPRAZolam",
-        "confused_with": "clonazePAM",
-        "intended_use": "Anxiolytic",
-        "potential_risk": "Mixing up with an anticonvulsant, leading to unmanaged anxiety or seizures."
-      },
-      {
-        "intended_medication": "ceFAZolin",
-        "confused_with": "cefoTEtan",
-        "intended_use": "Antibiotic",
-        "potential_risk": "Administering the wrong cephalosporin, potentially leading to ineffective infection treatment."
-      },
-      {
-        "intended_medication": "CeleBREX",
-        "confused_with": "CeleXA",
-        "intended_use": "NSAID",
-        "potential_risk": "Confusing with an antidepressant, leading to unmanaged pain or depression."
-      },
-      {
-        "intended_medication": "glipiZIDE",
-        "confused_with": "glyBURIDE",
-        "intended_use": "Antidiabetic Agent",
-        "potential_risk": "Confusion between two antidiabetic medications, potentially causing hypoglycemia or inadequate blood sugar control."
-      },
-      {
-        "intended_medication": "LAMIvudine",
-        "confused_with": "LAMOtrigine",
-        "intended_use": "Antiretroviral",
-        "potential_risk": "Mixing up with an anticonvulsant, leading to untreated HIV infection or unmanaged seizures."
-      },
-      {
-        "intended_medication": "niCARdipine",
-        "confused_with": "NIFEdipine",
-        "intended_use": "Antihypertensive",
-        "potential_risk": "Confusion between two calcium channel blockers with different dosing, affecting blood pressure control."
-      },
-      {
-        "intended_medication": "PARoxetine",
-        "confused_with": "FLUoxetine",
-        "intended_use": "Antidepressant",
-        "potential_risk": "Substitution between two SSRIs, potentially leading to therapeutic duplication or withdrawal symptoms."
-      },
-      {
-        "intended_medication": "quiNIDine",
-        "confused_with": "quiNINE",
-        "intended_use": "Antiarrhythmic",
-        "potential_risk": "Confusing with an antimalarial, leading to ineffective treatment of arrhythmias or malaria."
-      },
-      {
-        "intended_medication": "sulfADIAZINE",
-        "confused_with": "sulfASALAzine",
-        "intended_use": "Antibiotic",
-        "potential_risk": "Mixing up with an anti-inflammatory agent, leading to untreated infection or inflammation."
-      },
-      {
-        "intended_medication": "TOLAZamide",
-        "confused_with": "TOLBUTamide",
-        "intended_use": "Antidiabetic Agent",
-        "potential_risk": "Confusion between two sulfonylureas, potentially causing hypoglycemia or inadequate blood sugar control."
-      },
-      {
-        "intended_medication": "ZyPREXA",
-        "confused_with": "ZyrTEC",
-        "intended_use": "Antipsychotic",
-        "potential_risk": "Confusing with an antihistamine, leading to unmanaged psychosis or unnecessary allergy treatment."
-      }
-    ]
-  }
+  "acetaZOLAMIDE": "acetoHEXAMIDE",
+  "acetoHEXAMIDE": "acetaZOLAMIDE",
+  "buPROPion": "busPIRone",
+  "busPIRone": "buPROPion",
+  "chlorproMAZINE": "chlorproPAMIDE",
+  "chlorproPAMIDE": "chlorproMAZINE",
+  "clomiPHENE": "clomiPRAMINE",
+  "clomiPRAMINE": "clomiPHENE",
+  "cycloSERINE": "cycloSPORINE",
+  "cycloSPORINE": "cycloSERINE",
+  "DAUNOrubicin": "DOXOrubicin",
+  "DOXOrubicin": "DAUNOrubicin",
+  "DOBUTamine": "DOPamine",
+  "DOPamine": "DOBUTamine",
+  "hydrALAZINE": "hydrOXYzine",
+  "hydrOXYzine": "hydrALAZINE",
+  "morphine": "HYDROmorphone",
+  "HYDROmorphone": "morphine",
+  "pentoBARBital": "phenobARBITAL",
+  "phenobARBITAL": "pentoBARBital",
+  "traMADol": "traZODone",
+  "traZODone": "traMADol",
+  "vinBLAStine": "vinCRIStine",
+  "vinCRIStine": "vinBLAStine",
+  "ALPRAZolam": "clonazePAM",
+  "clonazePAM": "ALPRAZolam",
+  "ceFAZolin": "cefoTEtan",
+  "cefoTEtan": "ceFAZolin",
+  "CeleBREX": "CeleXA",
+  "CeleXA": "CeleBREX",
+  "glipiZIDE": "glyBURIDE",
+  "glyBURIDE": "glipiZIDE",
+  "LAMIvudine": "LAMOtrigine",
+  "LAMOtrigine": "LAMIvudine",
+  "niCARdipine": "NIFEdipine",
+  "NIFEdipine": "niCARdipine",
+  "PARoxetine": "FLUoxetine",
+  "FLUoxetine": "PARoxetine",
+  "quiNIDine": "quiNINE",
+  "quiNINE": "quiNIDine",
+  "sulfADIAZINE": "sulfASALAzine",
+  "sulfASALAzine": "sulfADIAZINE",
+  "TOLAZamide": "TOLBUTamide",
+  "TOLBUTamide": "TOLAZamide",
+  "ZyPREXA": "ZyrTEC",
+  "ZyrTEC": "ZyPREXA"
+}
