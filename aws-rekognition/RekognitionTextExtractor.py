@@ -1,8 +1,27 @@
+from flask import Flask, request, jsonify
 import boto3
 from botocore.exceptions import ClientError
 import os
 from typing import List, Dict
+from dotenv import load_dotenv
+from werkzeug.utils import secure_filename
+import logging
 
+# Load environment variables
+load_dotenv()
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Initialize Flask app
+app = Flask(__name__)
+
+# Configure maximum file size (16MB)
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+
+# Configure allowed file extensions
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 class RekognitionTextExtractor:
     def __init__(self, image_bin: bytes) -> None:
@@ -15,26 +34,6 @@ class RekognitionTextExtractor:
         self.image_data = image_bin
 
     def extract_text(self) -> List[Dict]:
-        """
-        Extract text from image without storing any data
-
-        Returns:
-            List of detected text with confidence scores
-
-        Example Response:
-            [
-                {
-                    'text': 'ABC123',
-                    'confidence': 98.5,
-                    'position': {
-                        'left': 0.25,
-                        'top': 0.30,
-                        'width': 0.40,
-                        'height': 0.15
-                    }
-                }
-            ]
-        """
         try:
             response = self.client.detect_text(Image={"Bytes": self.image_data})
 
@@ -45,32 +44,93 @@ class RekognitionTextExtractor:
                     "position": detection["Geometry"]["BoundingBox"],
                 }
                 for detection in response["TextDetections"]
-                if detection["Type"] == "LINE"  # Filter for complete lines
+                if detection["Type"] == "LINE"
             ]
 
         except ClientError as e:
-            print(f"AWS Error: {e.response['Error']['Message']}")
-            return []
-        except FileNotFoundError:
-            print("Error: Image file not found")
-            return []
+            logger.error(f"AWS Error: {e.response['Error']['Message']}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error: {str(e)}")
+            raise
 
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# Usage Example
-if __name__ == "__main__":
-    # Create .env file with:
-    # AWS_ACCESS_KEY_ID=YOUR_KEY
-    # AWS_SECRET_ACCESS_KEY=YOUR_SECRET
-    # AWS_REGION=your-region
-    image_path = "H:/Hackathons/T9hacks/t9-hackathon/temp/pill_image.jpg"
+@app.route('/health', methods=['GET'])
+def health_check():
+    """Basic health check endpoint"""
+    return jsonify({"status": "healthy"}), 200
 
-    with open(image_path, "rb") as image_file:
-        image_bytes = image_file.read()
+@app.route('/extract-text', methods=['POST'])
+def extract_text():
+    """
+    Extract text from uploaded image using AWS Rekognition
+    
+    Expected input: multipart/form-data with an 'image' file
+    Returns: JSON with extracted text and metadata
+    """
+    try:
+        # Check if image file is present in request
+        if 'image' not in request.files:
+            return jsonify({
+                "error": "No image file provided",
+                "details": "Request must include an image file"
+            }), 400
+        
+        file = request.files['image']
+        
+        # Check if a file was actually selected
+        if file.filename == '':
+            return jsonify({
+                "error": "No selected file",
+                "details": "A file must be selected"
+            }), 400
+            
+        # Validate file extension
+        if not allowed_file(file.filename):
+            return jsonify({
+                "error": "Invalid file type",
+                "details": f"Allowed file types are: {', '.join(ALLOWED_EXTENSIONS)}"
+            }), 400
 
-    extractor = RekognitionTextExtractor(image_bytes)
-    results = extractor.extract_text()
+        # Read the file
+        image_bytes = file.read()
+        
+        # Create extractor and process image
+        extractor = RekognitionTextExtractor(image_bytes)
+        results = extractor.extract_text()
+        #summary=parseHTML(results[0]["text"])
+        # Return results
+        return jsonify({
+            "status": "success",
+            "detected_items": len(results),
+            "results": results
+        }), 200
 
-    print("Detected Text:")
-    for item in results:
-        print(f"- {item['text']} (Confidence: {item['confidence']:.1f}%)")
-        print(f"  Position: {item['position']}")
+    except ClientError as e:
+        logger.error(f"AWS Error: {str(e)}")
+        return jsonify({
+            "error": "AWS Service Error",
+            "details": str(e)
+        }), 500
+        
+    except Exception as e:
+        logger.error(f"Unexpected error: {str(e)}")
+        return jsonify({
+            "error": "Internal Server Error",
+            "details": str(e)
+        }), 500
+
+if __name__ == '__main__':
+    # Check for required environment variables
+    required_env_vars = ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY']
+    missing_vars = [var for var in required_env_vars if not os.getenv(var)]
+    
+    if missing_vars:
+        logger.error(f"Missing required environment variables: {', '.join(missing_vars)}")
+        exit(1)
+    
+    # Run the Flask app
+    app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)), debug=False)
