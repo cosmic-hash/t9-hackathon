@@ -4,8 +4,9 @@ from bs4 import BeautifulSoup, Tag
 from requests.exceptions import RequestException
 import sys
 import os
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from fdaDataProcessing import generic_fetch_summary
+from myHelpers.fdaDataProcessing import generic_fetch_summary
 
 
 class HtmlParser:
@@ -19,8 +20,8 @@ class HtmlParser:
         self.pill_names: List[str] = []
         self.pill_descriptions: List[Dict[str, str]] = []
         self.output_imprint: Optional[str] = None  # Example: Manufacturer name
-        self.output_name: Optional[str] = None    # Example: Drug classification
-        self.output_summary: Optional[str] = None 
+        self.output_name: Optional[str] = None  # Example: Drug classification
+        self.output_summary: Optional[str] = None
 
     def _fetch_html(self) -> bool:
         """
@@ -94,14 +95,13 @@ class HtmlParser:
                 value: str = dd.get_text(strip=True)
                 items[key] = value
             self.pill_descriptions.append(items)
-        print("htlm parser=",self.imprint_code, self.pill_names[0])   
-        self.output_imprint=self.imprint_code
-        self.output_name=self.pill_names[0]
-        self.output_summary = generic_fetch_summary(self.imprint_code ,self.pill_names[0])
+        print("htlm parser=", self.imprint_code, self.pill_names[0])
+        self.output_imprint = self.imprint_code
+        self.output_name = self.pill_names[0]
+        self.output_summary = generic_fetch_summary(
+            self.imprint_code, self.pill_names[0]
+        )
         print(self.imprint_code, self.pill_names[0], self.output_summary)
-
-
-
 
     def print_results(self) -> None:
         """

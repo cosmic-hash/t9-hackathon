@@ -7,4 +7,4 @@ __pycache__/
 .vscode
 .env
 /venv
-
+/aws_rekognition/__pycache__

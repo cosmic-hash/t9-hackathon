@@ -1,9 +1,11 @@
 import requests
 import redis
 import json
-from openaiCall import explain_drug_from_json
+from myHelpers.openaiCall import explain_drug_from_json
+
 # Initialize Redis connection
-redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
+redis_client = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
+
 
 def load_lasa_data(file_path="misc/LASA.json"):
     try:
@@ -13,10 +15,12 @@ def load_lasa_data(file_path="misc/LASA.json"):
         print("LASA data file not found.")
         return {}
 
+
 def generate_openfda_url(generic_name, limit=1):
     base_url = "https://api.fda.gov/drug/label.json"
-    query = f"search=openfda.generic_name:\"{generic_name}\"&limit={limit}"
+    query = f'search=openfda.generic_name:"{generic_name}"&limit={limit}'
     return f"{base_url}?{query}"
+
 
 def fetch_fda_data(url):
     response = requests.get(url)
@@ -30,8 +34,14 @@ def fetch_fda_data(url):
         else:
             return None, None
     else:
-        return f"Failed to fetch data. Status code: {response.status_code}", None, None, None
-    
+        return (
+            f"Failed to fetch data. Status code: {response.status_code}",
+            None,
+            None,
+            None,
+        )
+
+
 def search_and_fetch_pill_info(pill_name):
     # Load LASA data
     lasa_data = load_lasa_data()
@@ -47,7 +57,7 @@ def search_and_fetch_pill_info(pill_name):
             print("Data fetched from cache:")
             cached_data = json.loads(cached_data)
             print(f"Purpose: {cached_data['purpose']}")
-            return cached_data['purpose'], related_pill
+            return cached_data["purpose"], related_pill
 
         # If not in cache, fetch from FDA API
         url = generate_openfda_url(related_pill)
@@ -55,7 +65,9 @@ def search_and_fetch_pill_info(pill_name):
         purpose, data = fetch_fda_data(url)
         if data:
             # Store the data in Redis with a TTL of 1800 seconds (30 minutes)
-            redis_client.setex(related_pill, 1800, json.dumps({"purpose": purpose, "data": data}))
+            redis_client.setex(
+                related_pill, 1800, json.dumps({"purpose": purpose, "data": data})
+            )
             return purpose, related_pill
         else:
             print("Failed to retrieve drug information.")
@@ -63,6 +75,7 @@ def search_and_fetch_pill_info(pill_name):
     else:
         print("Medication not found in LASA data.")
         return None, None
+
 
 def generic_fetch_summary(imprint_number, generic_name):
     url = generate_openfda_url(generic_name)
@@ -76,7 +89,7 @@ def generic_fetch_summary(imprint_number, generic_name):
         cached_data = redis_client.get(cache_key)
         if cached_data:
             print("Data fetched from cache:")
-            #cached_data = json.loads(cached_data)
+            # cached_data = json.loads(cached_data)
             explanation = explain_drug_from_json(json.loads(cached_data))
             print(f"data: {explanation}")
             return explanation
@@ -87,6 +100,7 @@ def generic_fetch_summary(imprint_number, generic_name):
         return explanation
     else:
         print("Failed to retrieve drug information.")
+
 
 def main():
     imprint_number = "M71"
@@ -116,6 +130,7 @@ def main():
         print(f"Purpose of the pill '{generic_name}': {purpose2}")
     else:
         print("No information found for the provided pill name.")
+
 
 # if __name__ == "__main__":
 #     main()

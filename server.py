@@ -5,12 +5,8 @@ from aws_rekognition.RekognitionTextExtractor import RekognitionTextExtractor
 from scrape.HTMLParse import HtmlParser
 import os
 import redis
-from openaiCall import explain_drug_from_json
-from fdaDataProcessing import search_and_fetch_pill_info
-
-# TODO:
-# 1. Connect /extract_imprint to /get_pill_info aka pass the extracted text to get_pill_info endpoint
-# 2. Implement endpoint for CHATBOT
+from myHelpers.openaiCall import explain_drug_from_json
+from myHelpers.fdaDataProcessing import search_and_fetch_pill_info
 
 # Load environment variables from a .env file, if available
 load_dotenv()
@@ -27,7 +23,11 @@ app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
 
 # Define allowed image file extensions for uploads
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
-redis_client = redis.Redis(host=os.getenv("REDIS_HOST", "localhost"), port=int(os.getenv("REDIS_PORT", 6379)), decode_responses=True)
+redis_client = redis.Redis(
+    host=os.getenv("REDIS_HOST", "localhost"),
+    port=int(os.getenv("REDIS_PORT", 6379)),
+    decode_responses=True,
+)
 
 
 def allowed_file(filename: str) -> bool:
@@ -108,15 +108,15 @@ def extract_imprint():
         parser = HtmlParser(results[0]["text"])
         # Parse the content to retrieve pill information
         parser.parse_content()
-        print("imprint=",results[0]["text"])
+        print("imprint=", results[0]["text"])
 
         # Return the first detected text as the imprint code in JSON format
         return (
             jsonify(
                 {
                     "imprint_number": results[0]["text"],
-                    "generic_name":parser.output_name,
-                    "summary":parser.output_summary,
+                    "generic_name": parser.output_name,
+                    "summary": parser.output_summary,
                 }
             ),
             200,
@@ -184,10 +184,11 @@ def get_pill_info():
         {
             # Optionally include the imprint code if needed:
             "imprint_number": imprint_code,
-            "generic_name":parser.output_name,
-            "summary":parser.output_summary,
+            "generic_name": parser.output_name,
+            "summary": parser.output_summary,
         }
     )
+
 
 @app.route("/conversation", methods=["POST"])
 def conversation():
@@ -207,44 +208,68 @@ def conversation():
         if not_this_pill:
             new_purpose, related_pill = search_and_fetch_pill_info(generic_name)
             if new_purpose:
-                return jsonify({
-                    "message": "Incorrect pill information detected. Fetched updated information.",
-                    "generic_name": related_pill,
-                    "new_purpose": new_purpose
-                })
+                return jsonify(
+                    {
+                        "message": "Incorrect pill information detected. Fetched updated information.",
+                        "generic_name": related_pill,
+                        "new_purpose": new_purpose,
+                    }
+                )
             else:
-                return jsonify({"error": "No updated information found for the provided pill name."}), 404
-        
+                return (
+                    jsonify(
+                        {
+                            "error": "No updated information found for the provided pill name."
+                        }
+                    ),
+                    404,
+                )
+
         pill_data = redis_client.get(cache_key)
         if not pill_data:
-            return jsonify({"error": "No data found for given imprint_number and generic_name"}), 404
+            return (
+                jsonify(
+                    {"error": "No data found for given imprint_number and generic_name"}
+                ),
+                404,
+            )
 
         if not_this_pill:
             new_purpose = search_and_fetch_pill_info(generic_name)
             if new_purpose:
-                return jsonify({
-                    "message": "Incorrect pill information detected. Fetched updated information.",
-                    "generic_name": generic_name,
-                    "new_purpose": new_purpose
-                })
+                return jsonify(
+                    {
+                        "message": "Incorrect pill information detected. Fetched updated information.",
+                        "generic_name": generic_name,
+                        "new_purpose": new_purpose,
+                    }
+                )
             else:
-                return jsonify({"error": "No updated information found for the provided pill name."}), 404
+                return (
+                    jsonify(
+                        {
+                            "error": "No updated information found for the provided pill name."
+                        }
+                    ),
+                    404,
+                )
 
         # Parse the data (assuming it's stored as JSON string)
         import json
-        pill_info = json.loads(pill_data)
 
-    
+        pill_info = json.loads(pill_data)
 
         # Pass the data to the OpenAI handler with optional user query
         explanation = explain_drug_from_json(pill_info, user_query)
-        
-        return jsonify({
-            "imprint_number": imprint_number,
-            "generic_name": generic_name,
-            "user_query": user_query,
-            "explanation": explanation
-        })
+
+        return jsonify(
+            {
+                "imprint_number": imprint_number,
+                "generic_name": generic_name,
+                "user_query": user_query,
+                "explanation": explanation,
+            }
+        )
 
     except Exception as e:
         logger.error(f"Unexpected error in /conversation: {str(e)}")
