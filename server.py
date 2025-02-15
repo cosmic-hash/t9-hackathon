@@ -1,10 +1,12 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
+from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 import logging
 from aws_rekognition.RekognitionTextExtractor import RekognitionTextExtractor
 from scrape.HTMLParse import HtmlParser
 import os
 import redis
+from datetime import datetime
 from myHelpers.openaiCall import explain_drug_from_json
 from myHelpers.fdaDataProcessing import search_and_fetch_pill_info
 
@@ -29,6 +31,10 @@ redis_client = redis.Redis(
     decode_responses=True,
 )
 
+# Configure upload settings
+UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "static")
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
 
 def allowed_file(filename: str) -> bool:
     """
@@ -39,94 +45,76 @@ def allowed_file(filename: str) -> bool:
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-@app.route("/health", methods=["GET"])
-def health_check() -> tuple:
+@app.route("/", methods=["GET"])
+def serve_frontend() -> tuple:
     """
-    Basic health check endpoint to verify that the service is running.
-    Returns:
-        A JSON response with a status message and HTTP status code 200.
+    Serve React frontend homepage
     """
-    return jsonify({"status": "healthy"}), 200
+    return send_from_directory("../frontend/build", "index.html")
 
 
 @app.route("/extract_imprint", methods=["POST"])
 def extract_imprint():
-    """
-    Endpoint to extract text from an uploaded image using AWS Rekognition.
-
-    Expected Input:
-        - A multipart/form-data POST request containing an image file with the key 'image'.
-
-    Returns:
-        - On success: A JSON response containing the extracted imprint code.
-        - On error: A JSON response with an appropriate error message and HTTP status code.
-    """
     try:
-        # Check if the request contains a file under the key 'image'
         if "image" not in request.files:
-            return (
-                jsonify(
-                    {
-                        "error": "No image file provided",
-                        "details": "Request must include an image file",
-                    }
-                ),
-                400,
-            )
+            return jsonify({"error": "No image file provided"}), 400
 
-        # Retrieve the file from the request
         file = request.files["image"]
 
-        # Verify that a file was selected (filename should not be empty)
         if file.filename == "":
-            return (
-                jsonify(
-                    {"error": "No selected file", "details": "A file must be selected"}
-                ),
-                400,
-            )
+            return jsonify({"error": "No selected file"}), 400
 
-        # Check if the file extension is allowed
         if not allowed_file(file.filename):
-            return (
-                jsonify(
-                    {
-                        "error": "Invalid file type",
-                        "details": f"Allowed file types are: {', '.join(ALLOWED_EXTENSIONS)}",
-                    }
-                ),
-                400,
-            )
+            return jsonify({"error": "Invalid file type"}), 400
 
-        # Read the file's binary content
-        image_bytes = file.read()
+        # Create dated subdirectory
+        today = datetime.today().strftime("%Y-%m-%d")
+        save_dir = os.path.join(app.config["UPLOAD_FOLDER"], today)
+        os.makedirs(save_dir, exist_ok=True)
 
-        # Initialize the RekognitionTextExtractor with the image data
+        # Secure filename and save
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(save_dir, filename)
+        file.save(filepath)
+
+        # Process image
+        with open(filepath, "rb") as f:
+            image_bytes = f.read()
+
         extractor = RekognitionTextExtractor(image_bytes)
-        # Extract text from the image using the custom extractor
         results = extractor.extract_text()
         parser = HtmlParser(results[0]["text"])
-        # Parse the content to retrieve pill information
         parser.parse_content()
-        print("imprint=", results[0]["text"])
 
-        # Return the first detected text as the imprint code in JSON format
+        # Generate accessible URL
+        image_url = f"/uploads/{today}/{filename}"
+
         return (
             jsonify(
                 {
                     "imprint_number": results[0]["text"],
                     "generic_name": parser.output_name,
                     "summary": parser.output_summary,
+                    "image_url": image_url,
                 }
             ),
             200,
         )
 
     except Exception as e:
-        # Log any unexpected error for debugging purposes
-        logger.error(f"Unexpected error: {str(e)}")
-        # Return a 500 Internal Server Error response with the error details
-        return jsonify({"error": "Internal Server Error", "details": str(e)}), 500
+        logger.error(f"Error: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
+# Add route to serve uploaded images
+@app.route("/uploads/<date>/<filename>")
+def serve_image(date, filename):
+    try:
+        return send_from_directory(
+            os.path.join(app.config["UPLOAD_FOLDER"], date), filename
+        )
+    except FileNotFoundError:
+        return jsonify({"error": "Image not found"}), 404
 
 
 @app.route("/get_pill_info", methods=["POST"])
