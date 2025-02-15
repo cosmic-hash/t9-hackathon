@@ -48,15 +48,15 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ onSendMessage, mes
                 animate={{ opacity: 1, x: 0 }}
                 className="text-left mt-2"
               >
-                <div className="inline-block rounded-lg px-4 py-2 max-w-[80%] bg-gray-800 text-white">
+                <div className="inline-block rounded-lg px-4 py-2 max-w-[80%] bg-rose-100 text-black">
                   <p className="mb-1">{msg.explanation}</p>
                   {msg.generic_name && (
-                    <p className="text-sm text-gray-300">
+                    <p className="text-sm text-black-600">
                       <strong>Generic Name:</strong> {msg.generic_name}
                     </p>
                   )}
                   {msg.imprint_number && (
-                    <p className="text-sm text-gray-300">
+                    <p className="text-sm text-black-600">
                       <strong>Imprint Number:</strong> {msg.imprint_number}
                     </p>
                   )}
@@ -73,7 +73,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ onSendMessage, mes
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Ask about your medication..."
-            className="flex-1 px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-pink-300"
+            className="flex-1 px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:pink-300"
           />
           <motion.button
             whileHover={{ scale: 1.05 }}

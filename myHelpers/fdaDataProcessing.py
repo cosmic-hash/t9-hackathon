@@ -74,7 +74,9 @@ def search_and_fetch_pill_info(pill_name):
             return None, None
     else:
         print("Medication not found in LASA data.")
-        return None, None
+        related_pill = "didn't find anything in our database 🤒"
+        purpose = "Please consult a doctor for the correct pill for your condition."
+        return purpose, related_pill
 
 
 def generic_fetch_summary(imprint_number, generic_name):

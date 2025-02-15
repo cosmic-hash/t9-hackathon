@@ -10,18 +10,18 @@ class OpenAIHandler:
         if user_query:
             user_prompt = (
                 f"Here is a medicine purpose: '{purpose}'. User's query: '{user_query}'. "
-                "Please answer the user's query strictly based on the provided purpose without relying on any external knowledge."
+                "Please provide a clear, knowledgeable, and concise answer strictly based on the provided purpose without relying on any external knowledge. Avoid formatting like bold text; use plain text with numbers and decimals as needed."
             )
         else:
             user_prompt = (
-                f"Here is a medicine purpose: '{purpose}'. Can you explain what condition this medicine is meant to treat and how it helps? "
-                "Please use only the provided content and do not rely on any external knowledge."
+                f"Here is a medicine purpose: '{purpose}'. Can you briefly explain what condition this medicine is meant to treat and how it helps? "
+                "Please use only the provided content and do not rely on any external knowledge. Keep the response concise, clear, and in plain text without special formatting."
             )
 
         completion = self.client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "system", "content": "You are a helpful and concise assistant."},
                 {"role": "user", "content": user_prompt},
             ],
         )
@@ -39,30 +39,18 @@ def explain_drug_from_json(fda_json, user_query=None):
     Returns:
         str: The explanation of the problems the drug solves.
     """
-    # Extract relevant information from the JSON response
-    drug_name = fda_json["results"][0]["openfda"]["generic_name"][0]
-    description = fda_json["results"][0].get(
-        ["description"][0], "No description available"
-    )
-    pharmacology = fda_json["results"][0].get(
-        ["clinical_pharmacology"][0], "No pharmacology available"
-    )
-    indications = fda_json["results"][0].get(
-        ["indications_and_usage"][0], "No indications available"
-    )
+    # Extract all information from the JSON response
+    all_info = []
+    for key, value in fda_json["results"][0].items():
+        all_info.append(f"{key}: {value}")
 
-    # Create a purpose string for the medicine
-    purpose = (
-        f"Drug Name: {drug_name}. "
-        f"Description: {description}. "
-        f"Clinical Pharmacology: {pharmacology}. "
-        f"Indications and Usage: {indications}."
-    )
+    purpose = "\n".join(all_info)
 
     # Instantiate the OpenAI handler and get the explanation
     handler = OpenAIHandler()
     explanation = handler.send_to_openai(purpose, user_query)
     return explanation
+
 
 
 # Example usage

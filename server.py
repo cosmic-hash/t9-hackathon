@@ -104,7 +104,7 @@ def extract_imprint():
         parser.parse_content()
 
         # Generate accessible URL
-        image_url = f"/uploads/{today}/{filename}"
+        image_url = "http://localhost:6969" + f"/uploads/{today}/{filename}"
 
         return (
             jsonify(

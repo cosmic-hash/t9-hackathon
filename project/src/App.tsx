@@ -82,7 +82,7 @@ function App() {
       >
         <div className="flex justify-center items-center gap-2 mb-4">
           <Heart className="w-8 h-8 text-pink-500" />
-          <h1 className="text-4xl font-bold text-gray-800">Medicine Identifier</h1>
+          <h1 className="text-4xl font-bold text-gray-800">Pills mate</h1>
         </div>
         <p className="text-gray-600 max-w-xl mx-auto">
           Upload a photo of your medication, and we'll help you identify it and answer any questions you may have.
